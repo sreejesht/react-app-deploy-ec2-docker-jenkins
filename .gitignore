@@ -1,0 +1,15 @@
+# Node modules and build artifacts
+node_modules/
+build/
+
+# Environment files
+.env
+
+# Logs and system files
+*.log
+.DS_Store
+*.pem
+
+# Docker files
+*.tar
+
