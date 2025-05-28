@@ -3,36 +3,39 @@ pipeline {
 
   environment {
     IMAGE_NAME = "react-static-app"
-    DOCKERHUB_USER = "sreedocker911"
+    DEV_REPO = "sreedocker911/react-app-dev:latest"
+    PROD_REPO = "sreedocker911/react-app-prod:latest"
   }
 
   stages {
-    stage('Clone Repo') {
+    stage('Checkout') {
       steps {
-        git branch: 'dev', url: 'https://github.com/sriram-R-krishnan/devops-build'
+        checkout([$class: 'GitSCM',
+          userRemoteConfigs: [[
+            url: 'https://github.com/sriram-R-krishnan/devops-build.git',
+            credentialsId: 'github-creds'
+          ]],
+          branches: [[name: '*/dev']]
+        ])
       }
     }
 
     stage('Build Docker Image') {
       steps {
-        sh './build.sh'
+        sh 'docker build -t $IMAGE_NAME ./devops-build'
       }
     }
 
-    stage('Deploy Container') {
-      steps {
-        sh './deploy.sh'
-      }
-    }
-
-    stage('Push Docker Images') {
+    stage('Push to DockerHub') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-          sh './push-docker-images.sh'
+          sh '''
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker tag $IMAGE_NAME $DEV_REPO
+            docker push $DEV_REPO
+          '''
         }
       }
     }
   }
 }
-
