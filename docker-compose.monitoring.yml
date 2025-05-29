@@ -3,19 +3,31 @@ services:
   prometheus:
     image: prom/prometheus
     container_name: prometheus
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
     ports:
       - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - devops-net
 
   grafana:
     image: grafana/grafana
     container_name: grafana
+    restart: unless-stopped
     ports:
       - "3000:3000"
-    volumes:
-      - grafana-storage:/var/lib/grafana
+    networks:
+      - devops-net
+  blackbox:
+    image: prom/blackbox-exporter
+    container_name: blackbox
+    ports:
+      - "9115:9115"
+    networks:
+      - devops-net
 
-volumes:
-  grafana-storage:
+networks:
+  devops-net:
+    external: true
 
