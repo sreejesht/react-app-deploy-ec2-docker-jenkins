@@ -1,0 +1,14 @@
+FROM jenkins/jenkins:lts
+
+USER root
+
+# Install Docker
+RUN apt-get update && \
+    apt-get install -y docker.io && \
+    usermod -aG docker jenkins
+
+# Install Git
+RUN apt-get install -y git
+
+USER jenkins
+
