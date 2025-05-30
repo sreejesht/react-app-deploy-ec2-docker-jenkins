@@ -30,12 +30,12 @@ pipeline {
       }
     }
 
-    stage('Deploy Container') {
-      steps {
-        echo "🚀 Deploying container..."
-        sh './deploy.sh'
-      }
-    }
+//    stage('Deploy Container') {
+//      steps {
+//        echo "🚀 Deploying container..."
+//        sh './deploy.sh'
+//      }
+//    }
 
     stage('Push Docker Images to DockerHub') {
       steps {

@@ -1,14 +1,18 @@
 FROM jenkins/jenkins:lts
 
+# Ensure you're root before doing system-level tasks
 USER root
 
-# Install Docker
-RUN apt-get update && \
-    apt-get install -y docker.io && \
-    usermod -aG docker jenkins
+# Install Docker and Git
+RUN apt-get update && apt-get install -y docker.io git
 
-# Install Git
-RUN apt-get install -y git
+# Match host docker group ID (replace 113 with actual GID if needed)
+RUN groupadd -g 113 docker || true
 
-USER jenkins
+# Add jenkins user to docker group
+RUN usermod -aG docker jenkins
+
+# [Optional] Keep running as root so Jenkins can use Docker properly
+# Otherwise, switch back to jenkins and use sudo inside scripts (not preferred)
+# USER jenkins
 
