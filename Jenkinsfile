@@ -5,11 +5,11 @@ pipeline {
     IMAGE_NAME = "react-static-app"
     DOCKERHUB_USER = "sreedocker911"
   }
-
+def branchToUse = env.BRANCH_NAME ?: 'dev'
   stages {
     stage('Clone Repo') {
       steps {
-        git branch: "${env.BRANCH_NAME}", url: 'https://github.com/sriram-R-krishnan/devops-build'
+        git branch: branchToUse, url: 'https://github.com/sriram-R-krishnan/devops-build'
       }
     }
 
