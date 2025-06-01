@@ -5,46 +5,51 @@ pipeline {
     IMAGE_NAME = "react-static-app"
     DOCKERHUB_USER = "sreedocker911"
   }
-def branchToUse = env.BRANCH_NAME ?: 'dev'
+
+  triggers {
+    pollSCM('* * * * *')
+  }
+
   stages {
     stage('Clone Repo') {
       steps {
-        git branch: branchToUse, url: 'https://github.com/sriram-R-krishnan/devops-build'
+        script {
+          def branchToUse = env.BRANCH_NAME ?: 'dev'
+          echo "📦 Cloning branch: ${branchToUse}"
+          checkout([$class: 'GitSCM',
+            branches: [[name: "*/${branchToUse}" ]],
+            userRemoteConfigs: [[url: 'https://github.com/sriram-R-krishnan/devops-build']]
+          ])
+        }
       }
     }
 
     stage('Build Docker Image') {
       steps {
-        echo "🛠️  Building Docker image..."
+        echo "Building Docker image..."
         sh './build.sh'
       }
     }
 
     stage('Tag Docker Images') {
       steps {
-        echo "🏷️  Tagging images for Dev and Prod..."
+        echo "Tagging Docker image for dev/prod..."
         sh '''
           docker tag react-static-app $DOCKERHUB_USER/react-app-dev:latest
-          if [ "$BRANCH_NAME" = "main" ]; then
-            docker tag react-static-app $DOCKERHUB_USER/react-app-prod:latest
-          fi
+          docker tag react-static-app $DOCKERHUB_USER/react-app-prod:latest
         '''
       }
     }
 
-    stage('Push Docker Images to DockerHub') {
+    stage('Push to DockerHub') {
       steps {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
           sh '''
-            echo "🔐 Logging in to DockerHub..."
             echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-
-            echo "📤 Pushing Dev image to DockerHub (public)..."
-            docker push $DOCKERHUB_USER/react-app-dev:latest
-
-            if [ "$BRANCH_NAME" = "main" ]; then
-              echo "📤 Pushing Prod image to DockerHub (private)..."
+            if [ "$BRANCH_NAME" == "master" ]; then
               docker push $DOCKERHUB_USER/react-app-prod:latest
+            else
+              docker push $DOCKERHUB_USER/react-app-dev:latest
             fi
           '''
         }
@@ -53,7 +58,7 @@ def branchToUse = env.BRANCH_NAME ?: 'dev'
 
     stage('Deploy Container') {
       steps {
-        echo "🚀 Deploying container..."
+        echo "Deploying container..."
         sh './deploy.sh'
       }
     }
@@ -61,10 +66,10 @@ def branchToUse = env.BRANCH_NAME ?: 'dev'
 
   post {
     success {
-      echo "✅ Deployment pipeline completed successfully."
+      echo "✅ CI/CD Pipeline completed successfully."
     }
     failure {
-      echo "❌ Deployment pipeline failed. Check logs above."
+      echo "❌ CI/CD Pipeline failed."
     }
   }
 }
