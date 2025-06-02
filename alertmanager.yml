@@ -1,0 +1,14 @@
+global:
+  smtp_smarthost: 'smtp.gmail.com:465'
+  smtp_from: 'sreejesh.t@gmail.com'
+  smtp_auth_username: 'sreejesh.t@gmail.com'
+  smtp_auth_password: 'wtco gjmu jeuc zsav'
+
+route:
+  receiver: 'email_notifications'
+
+receivers:
+  - name: 'email_notifications'
+    email_configs:
+      - to: 'sreejesh.t@gmail.com'
+        send_resolved: true
